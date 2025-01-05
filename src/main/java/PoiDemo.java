@@ -1,12 +1,19 @@
+import java.awt.GridLayout;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Scanner;
 
-import org.apache.poi.EncryptedDocumentException;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -15,68 +22,134 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 public class PoiDemo {
-    public static void main(String[] args) throws IOException {
-        String filePath = "C:\\Users\\dkart\\OneDrive\\Рабочий стол\\Учебные материалы\\Pp2.xls";
+    public static void main(String[] args) {
+        // Создаем окно
+        JFrame frame = new JFrame("Zajuns ILY");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(400, 200);
+        frame.setLayout(new GridLayout(3, 1, 10, 10));
 
+        // Панель для выбора файла
+        JPanel filePanel = new JPanel();
+        JTextField filePathField = new JTextField(20);
+        filePathField.setEditable(false);
+        JButton chooseFileButton = new JButton("Выбрать файл");
+        filePanel.add(filePathField);
+        filePanel.add(chooseFileButton);
+
+        // Панель для ввода значения
+        JPanel valuePanel = new JPanel();
+        JTextField valueField = new JTextField(10);
+        valuePanel.add(new JLabel("Введите новое значение: "));
+        valuePanel.add(valueField);
+
+        // Кнопка для обработки
+        JPanel processPanel = new JPanel();
+        JButton processButton = new JButton("Обработать");
+        processPanel.add(processButton);
+
+        // Добавляем панели в окно
+        frame.add(filePanel);
+        frame.add(valuePanel);
+        frame.add(processPanel);
+
+        // Обработчик кнопки выбора файла
+        chooseFileButton.addActionListener(e -> {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+                public boolean accept(File f) {
+                    return f.getName().toLowerCase().endsWith(".xls") || 
+                           f.getName().toLowerCase().endsWith(".xlsx") ||
+                           f.isDirectory();
+                }
+                public String getDescription() {
+                    return "Excel Files (*.xls, *.xlsx)";
+                }
+            });
+            
+            int result = fileChooser.showOpenDialog(frame);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                filePathField.setText(fileChooser.getSelectedFile().getAbsolutePath());
+            }
+        });
+
+        // Обработчик кнопки обработки
+        processButton.addActionListener(e -> {
+            String filePath = filePathField.getText();
+            if (filePath.isEmpty()) {
+                JOptionPane.showMessageDialog(frame, "Пожалуйста, выберите файл!");
+                return;
+            }
+
+            try {
+                double newValue = Double.parseDouble(valueField.getText());
+                processExcelFile(filePath, newValue);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(frame, "Пожалуйста, введите корректное числовое значение!");
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(frame, "Ошибка при обработке файла: " + ex.getMessage());
+            }
+        });
+
+        frame.setVisible(true);
+    }
+
+    // Метод для обработки Excel файла (переносим существующую логику сюда)
+    private static void processExcelFile(String filePath, double newValueColumn8) {
         try (InputStream inputStream = new FileInputStream(filePath)) {
             Workbook workbook = WorkbookFactory.create(inputStream);
-            Sheet sheet = workbook.getSheetAt(0); // Получаем первый лист книги
+            Sheet sheet = workbook.getSheetAt(0);
 
-            // Получаем новое значение для столбца 8 с клавиатуры
-            Scanner scanner = new Scanner(System.in);
-            System.out.print("Введите новое значение для столбца 8: ");
-            double newValueColumn8 = scanner.nextDouble();
             // Находим последнее число в столбце 8 перед строкой "tagastus" в столбце 0
-            int lastRowIndex = findLastRowIndexBeforeTagastus(sheet, 8,"tagastus").get(1);
+            int lastRowIndex = findLastRowIndexBeforeTagastus(sheet, 8, "tagastus").get(1);
             Cell N = sheet.getRow(sheet.getPhysicalNumberOfRows()).getCell(1);
             Cell V = sheet.getRow(sheet.getPhysicalNumberOfRows()+1).getCell(1);
-            double tagastus = sheet.getRow(findLastRowIndexBeforeTagastus(sheet,1,"Müügid (Arve-Saateleht)").get(0)-1).getCell(8).getNumericCellValue();
-            // Обновляем значение только в последней ячейке столбца 8.
+            double tagastus = Math.round(sheet.getRow(findLastRowIndexBeforeTagastus(sheet,1,"Müügid (Arve-Saateleht)").get(0)-1).getCell(8).getNumericCellValue() * 100.0) / 100.0;
+
             if (lastRowIndex != -1) {
-                // Обновляем значение только в последней ячейке столбца 8
+                // Округляем newValueColumn8 до сотых
+                newValueColumn8 = Math.round(newValueColumn8 * 100.0) / 100.0;
                 updateCellValue(sheet, lastRowIndex, 8, newValueColumn8);
 
-                // Получаем значение ячейки справа от последней ячейки столбца 8
                 double adjacentCellValue = getCellValue(sheet, lastRowIndex, 9);
-                // Вычисляем новое значение как сумму значения ячейки слева и значения ячейки справа от этой ячейки
-                double updatedValueColumn7 = newValueColumn8 + adjacentCellValue;
-                // Обновляем значение только в последней ячейке столбца 7
+                // Округляем все вычисления до сотых
+                double updatedValueColumn7 = Math.round((newValueColumn8 + adjacentCellValue) * 100.0) / 100.0;
                 updateCellValue(sheet, lastRowIndex, 7, updatedValueColumn7);
-                String stringValue = Double.toString(newValueColumn8 - tagastus); // Convert the result to a string
-                N.setCellValue(stringValue+"0");
-                V.setCellValue(stringValue+"0");
-                // Вычисляем новое значение для столбца 6
-                double updatedValueColumn6 = Math.round((updatedValueColumn7 * 24 / 124) * 100.0) / 100.0;
-                // Обновляем значение только в последней ячейке столбца 6
+                
+                double difference = Math.round((newValueColumn8 - tagastus) * 100.0) / 100.0;
+                String stringValue = String.format("%.2f", difference);
+                N.setCellValue(stringValue);
+                V.setCellValue(stringValue);
+                
+                // Округляем значение для столбца 6
+                double updatedValueColumn6 = Math.round((updatedValueColumn7 * 24.0 / 124.0) * 100.0) / 100.0;
                 updateCellValue(sheet, lastRowIndex, 6, updatedValueColumn6);
 
-                // Вычисляем новое значение для столбца 4
+                // Округляем значение для столбца 4
                 double updatedValueColumn4 = Math.round((updatedValueColumn7 - updatedValueColumn6) * 100.0) / 100.0;
-                // Обновляем значение только в последней ячейке столбца 4
                 updateCellValue(sheet, lastRowIndex, 4, updatedValueColumn4);
 
                 // If N is zero, delete cells N, V, and newValueColumn8
                 if (newValueColumn8 == 0) {
                     deleteCell(sheet, N);
                     deleteCell(sheet, V);
-                    deleteCell(sheet, lastRowIndex, 8); // Deleting cell at lastRowIndex and column 8
+                    deleteCell(sheet, lastRowIndex, 8);
                 }
             } else {
-                System.out.println("Строка 'tagastus' не найдена. Не удалось обновить значения в столбцах 4, 6, 7 и 8.");
+                JOptionPane.showMessageDialog(null, "Строка 'tagastus' не найдена. Не удалось обновить значения в столбцах 4, 6, 7 и 8.");
+                return;
             }
 
             // Записываем изменения обратно в файл Excel
             try (FileOutputStream outputStream = new FileOutputStream(filePath)) {
                 workbook.write(outputStream);
-            } catch (IOException e) {
-                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, "Значения успешно обновлены в файле Excel.");
             }
 
-            System.out.println("Значения успешно обновлены в файле Excel.");
-
-            workbook.close(); // Закрываем книгу
-        } catch (IOException | EncryptedDocumentException e) {
+            workbook.close();
+        } catch (Exception e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Ошибка при обработке файла: " + e.getMessage());
         }
     }
 
@@ -132,10 +205,11 @@ public class PoiDemo {
         if (row != null) {
             Cell cell = row.getCell(columnIndex);
             if (cell != null && cell.getCellType() == CellType.NUMERIC) {
-                return cell.getNumericCellValue();
+                // Округляем значение при получении из ячейки
+                return Math.round(cell.getNumericCellValue() * 100.0) / 100.0;
             }
         }
-        return 0.0; // Если значение не найдено или не числовое, возвращаем 0.0
+        return 0.0;
     }
 
     // Метод для обновления значения ячейки в указанной строке и столбце
@@ -148,7 +222,8 @@ public class PoiDemo {
         if (cell == null) {
             cell = row.createCell(columnIndex, CellType.NUMERIC);
         }
-        cell.setCellValue(newValue);
+        // Округляем значение перед записью в ячейку
+        cell.setCellValue(Math.round(newValue * 100.0) / 100.0);
     }
 
     // Method to delete a cell
@@ -168,10 +243,5 @@ public class PoiDemo {
                 row.removeCell(cell);
             }
         }
-    }
-
-    // Добавим новый вспомогательный метод для округления
-    private static double roundToTwoDecimals(double value) {
-        return Math.round(value * 100.0) / 100.0;
     }
 }
