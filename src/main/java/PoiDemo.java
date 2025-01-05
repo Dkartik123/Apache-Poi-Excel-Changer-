@@ -1,3 +1,4 @@
+import java.awt.Desktop;
 import java.awt.GridLayout;
 import java.io.File;
 import java.io.FileInputStream;
@@ -130,6 +131,12 @@ public class PoiDemo {
             try (FileOutputStream outputStream = new FileOutputStream(filePath)) {
                 workbook.write(outputStream);
                 JOptionPane.showMessageDialog(null, "Значения успешно обновлены в файле Excel.");
+                
+                try {
+                    Desktop.getDesktop().open(new File(filePath));
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "Не удалось открыть файл: " + e.getMessage());
+                }
             }
 
             workbook.close();
