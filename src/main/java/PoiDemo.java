@@ -123,7 +123,7 @@ public class PoiDemo {
                 V.setCellValue(stringValue);
                 
                 // Округляем значение для столбца 6
-                double updatedValueColumn6 = Math.round((updatedValueColumn7 * 24.0 / 124.0) * 100.0) / 100.0;
+                double updatedValueColumn6 = Math.round((updatedValueColumn7 * 22.0 / 122.0) * 100.0) / 100.0;
                 updateCellValue(sheet, lastRowIndex, 6, updatedValueColumn6);
 
                 // Округляем значение для столбца 4
