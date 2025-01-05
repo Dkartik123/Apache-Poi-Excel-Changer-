@@ -1,16 +1,18 @@
-import org.apache.poi.EncryptedDocumentException;
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.ss.formula.functions.Index;
-import org.apache.poi.ss.usermodel.*;
-
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+
+import org.apache.poi.EncryptedDocumentException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 public class PoiDemo {
     public static void main(String[] args) throws IOException {
@@ -44,12 +46,12 @@ public class PoiDemo {
                 N.setCellValue(stringValue+"0");
                 V.setCellValue(stringValue+"0");
                 // Вычисляем новое значение для столбца 6
-                double updatedValueColumn6 = updatedValueColumn7 * 22 / 122;
+                double updatedValueColumn6 = Math.round((updatedValueColumn7 * 24 / 124) * 100.0) / 100.0;
                 // Обновляем значение только в последней ячейке столбца 6
                 updateCellValue(sheet, lastRowIndex, 6, updatedValueColumn6);
 
                 // Вычисляем новое значение для столбца 4
-                double updatedValueColumn4 = updatedValueColumn7 - updatedValueColumn6;
+                double updatedValueColumn4 = Math.round((updatedValueColumn7 - updatedValueColumn6) * 100.0) / 100.0;
                 // Обновляем значение только в последней ячейке столбца 4
                 updateCellValue(sheet, lastRowIndex, 4, updatedValueColumn4);
 
@@ -166,5 +168,10 @@ public class PoiDemo {
                 row.removeCell(cell);
             }
         }
+    }
+
+    // Добавим новый вспомогательный метод для округления
+    private static double roundToTwoDecimals(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 }
