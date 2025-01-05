@@ -26,7 +26,8 @@ public class PoiDemo {
         // Создаем окно
         JFrame frame = new JFrame("Zajuns ILY");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(400, 200);
+        frame.setSize(600, 300);
+        frame.setLocationRelativeTo(null);
         frame.setLayout(new GridLayout(3, 1, 10, 10));
 
         // Панель для выбора файла
