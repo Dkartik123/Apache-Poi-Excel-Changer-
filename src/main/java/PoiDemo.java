@@ -52,6 +52,8 @@ public class PoiDemo {
 
         chooseFileButton.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(new File(System.getProperty("user.home") + "/Desktop"));
+            
             fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
                 public boolean accept(File f) {
                     return f.getName().toLowerCase().endsWith(".xls") || 
