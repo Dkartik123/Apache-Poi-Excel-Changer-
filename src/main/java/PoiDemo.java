@@ -188,16 +188,35 @@ public class PoiDemo {
         Cell cell = row.getCell(columnIndex);
         if (cell == null) {
             cell = row.createCell(columnIndex, CellType.NUMERIC);
-        } else {
-            // Сохраняем стиль ячейки перед обновлением
-            org.apache.poi.ss.usermodel.CellStyle originalStyle = cell.getCellStyle();
-            cell.setCellValue(Math.round(newValue * 100.0) / 100.0);
-            // Применяем сохраненный стиль обратно
-            cell.setCellStyle(originalStyle);
-            return;
         }
         
+        // Создаем новый стиль для ячейки
+        org.apache.poi.ss.usermodel.CellStyle cellStyle = sheet.getWorkbook().createCellStyle();
+        
+        // Если у ячейки уже был стиль, копируем все его свойства
+        if (cell.getCellStyle() != null) {
+            org.apache.poi.ss.usermodel.CellStyle originalStyle = cell.getCellStyle();
+            cellStyle.cloneStyleFrom(originalStyle);
+            
+            // Копируем шрифт
+            org.apache.poi.ss.usermodel.Font originalFont = sheet.getWorkbook().getFontAt(originalStyle.getFontIndex());
+            org.apache.poi.ss.usermodel.Font newFont = sheet.getWorkbook().createFont();
+            newFont.setBold(originalFont.getBold());
+            newFont.setItalic(originalFont.getItalic());
+            newFont.setFontName(originalFont.getFontName());
+            newFont.setFontHeightInPoints(originalFont.getFontHeightInPoints());
+            newFont.setColor(originalFont.getColor());
+            cellStyle.setFont(newFont);
+        }
+        
+        // Устанавливаем черные границы со всех сторон (перезаписываем границы)
+        cellStyle.setBorderTop(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+        cellStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+        cellStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+        cellStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+        
         cell.setCellValue(Math.round(newValue * 100.0) / 100.0);
+        cell.setCellStyle(cellStyle);
     }
 
     private static void deleteCell(Sheet sheet, Cell cell) {
