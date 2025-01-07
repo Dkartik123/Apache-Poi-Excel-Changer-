@@ -182,10 +182,19 @@ public class PoiDemo {
         if (row == null) {
             row = sheet.createRow(rowIndex);
         }
+        
         Cell cell = row.getCell(columnIndex);
         if (cell == null) {
             cell = row.createCell(columnIndex, CellType.NUMERIC);
+        } else {
+            // Сохраняем стиль ячейки перед обновлением
+            org.apache.poi.ss.usermodel.CellStyle originalStyle = cell.getCellStyle();
+            cell.setCellValue(Math.round(newValue * 100.0) / 100.0);
+            // Применяем сохраненный стиль обратно
+            cell.setCellStyle(originalStyle);
+            return;
         }
+        
         cell.setCellValue(Math.round(newValue * 100.0) / 100.0);
     }
 
